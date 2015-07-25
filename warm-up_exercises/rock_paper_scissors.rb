@@ -3,7 +3,8 @@
 # and declare a constant, just to get used to doing it in ruby. :3
 
 # Stretch goals: add in scorekeeping functionality, & make computer
-# ask for 3/5, 5/7, etc. if it's losing.
+# ask for 3/5, 5/7, etc. if it's losing. Be able to ask computer if it will
+# go 3/5, 5/7, etc., with computer generating a random response.
 
 CHOICES = ['Rock', 'Paper', 'Scissors']
 
@@ -15,11 +16,14 @@ def say(msg, title = nil)
 end
 
 def user_turn
-  input = String.new
-  input << gets.chomp
-  if input.downcase != 'r' && input.downcase != 'p' && input.downcase != 's'
-    say("Invalid choice. Choose one: [R/P/S]")
-    user_turn
+  input = ''
+  loop do
+    input << gets.chomp
+    if input.downcase != 'r' && input.downcase != 'p' && input.downcase != 's'
+      say("Invalid choice. Rock, Paper, or Scissors? [R/P/S]")
+      input.clear
+    end
+    break if input.downcase == 'r' || input.downcase == 'p' || input.downcase == 's'
   end
   case input.downcase
   when 'r'
@@ -59,14 +63,16 @@ def print_results(user_choice, computer_choice)
 end
 
 def response
-  input = String.new
-  input << gets.chomp
-  if input.downcase != 'y' && input.downcase != 'n'
-    say('Invalid choice.')
-    input.clear
-    response
+  input = ''
+  loop do
+    input << gets.chomp
+    if input.downcase != 'y' && input.downcase != 'n'
+      say('Invalid choice. Play again? [Y/N]')
+      input.clear
+    end
+    break if input.downcase == 'y' || input.downcase == 'n'
   end
-  input.downcase == 'y' ? (return 'y') : (return 'n')
+  input.downcase
 end
 
 loop do
