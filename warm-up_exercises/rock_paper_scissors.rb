@@ -63,7 +63,7 @@ def print_results(user_choice, computer_choice)
   end
 end
 
-def response
+def again_response
   input = ''
   loop do
     input << gets.chomp
@@ -84,6 +84,6 @@ say("You chose #{player_choice}.", 'Results!')
 say("The computer chose #{computer_choice}.")
 print_results(player_choice, computer_choice)
 say('[Y/N]', 'Play again?')
-break unless response.downcase == 'y'
+break unless again_response.downcase == 'y'
 end
 say('Thanks for playing!')
