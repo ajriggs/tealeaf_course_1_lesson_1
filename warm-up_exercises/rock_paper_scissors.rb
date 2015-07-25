@@ -2,10 +2,10 @@
 # tight as it could be, but I wanted to isolate all of the logic into methods,
 # and provide validation on user inputs, just to get used to doing it in ruby. :3
 
-# Stretch goals: add in scorekeeping functionality, match results, & make computer
-# ask for 3 games of 5, 5 of 7, etc. if it's losing. I also  want to be able to ask
-# the computer if it will go 3 of 5, 5 of 7, etc., with computer
-# randomly accepting or denying the request.
+# Stretch goals: Add in scorekeeping functionality, match results, & make the
+# computer ask for 3 games of 5, 5 of 7, etc. if it's losing. I also  want to
+# be able to ask the computer if it will go 3 of 5, 5 of 7, etc., with the
+# computer randomly accepting or denying the request.
 
 CHOICES = ['Rock', 'Paper', 'Scissors']
 
