@@ -21,13 +21,13 @@ end
 # string that equates to the users choice (i.e. 'r' => 'Rock').
 def user_turn
   input = ''
-  loop do
-    input << gets.chomp
-    if input.downcase != 'r' && input.downcase != 'p' && input.downcase != 's'
+  x = 1
+  while input.downcase != 'r' && input.downcase != 'p' && input.downcase != 's'
+    if x != 1
       say("Invalid choice. Rock, Paper, or Scissors? [R/P/S]")
-      input.clear
     end
-    break if input.downcase == 'r' || input.downcase == 'p' || input.downcase == 's'
+      input = gets.chomp
+      x += 1
   end
   case input.downcase
   when 'r'
@@ -72,13 +72,13 @@ end
 # Validates and returns a user's response (Y/N) when asked to play again.
 def again_response
   input = ''
-  loop do
-    input << gets.chomp
-    if input.downcase != 'y' && input.downcase != 'n'
+  x = 1
+  while input.downcase != 'y' && input.downcase != 'n'
+    if x != 1
       say('Invalid choice. Play again? [Y/N]')
-      input.clear
     end
-    break if input.downcase == 'y' || input.downcase == 'n'
+    input = gets.chomp
+    x += 1
   end
   input.downcase
 end
@@ -90,7 +90,7 @@ computer_choice = computer_turn
 say("You chose #{player_choice}.", 'Results!')
 say("The computer chose #{computer_choice}.")
 print_results(player_choice, computer_choice)
-say('[Y/N]', 'Play again?')
+say('Choose: [Y/N]', 'Play again?')
 break unless again_response.downcase == 'y'
 end
 say('Thanks for playing!')
