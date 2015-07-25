@@ -9,6 +9,7 @@
 
 CHOICES = ['Rock', 'Paper', 'Scissors']
 
+# Outputs a message, with an option, fancy-formatted title.
 def say(msg, title = nil)
   unless title == nil
     puts title.center(62, '~')
@@ -16,6 +17,8 @@ def say(msg, title = nil)
   puts  "=> #{msg}".ljust(62)
 end
 
+# Validates that user input 'r', 'p', or 's', and returns a capitalized
+# string that equates to the users choice (i.e. 'r' => 'Rock').
 def user_turn
   input = ''
   loop do
@@ -36,10 +39,13 @@ def user_turn
   end
 end
 
+# Returns a random choice, 'Rock', 'Paper', or 'Scissors'.
 def computer_turn
   CHOICES.sample
 end
 
+# Called inside print_results, this method prints an exciting sentence about the
+# results, simulating the action of the real game! lol
 def print_winning_message(winning_choice)
   case
   when 'Rock'
@@ -63,6 +69,7 @@ def print_results(user_choice, computer_choice)
   end
 end
 
+# Validates and returns a user's response (Y/N) when asked to play again.
 def again_response
   input = ''
   loop do
