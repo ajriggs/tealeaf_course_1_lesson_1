@@ -2,6 +2,9 @@
 # tight as it could be, but I wanted to isolate the logic into methods,
 # and declare a constant, just to get used to doing it in ruby. :3
 
+# Stretch goals: add in scorekeeping functionality, & make computer
+# ask for 3/5, 5/7, etc. if it's losing.
+
 CHOICES = ['Rock', 'Paper', 'Scissors']
 
 def say(msg, title = nil)
@@ -11,68 +14,69 @@ def say(msg, title = nil)
   puts  "=> #{msg}".ljust(62)
 end
 
-def valid_user_turn(rps)
-  if rps.downcase != 'r' && rps.downcase != 'p' && rps.downcase != 's'
+def user_turn
+  input = String.new
+  input << gets.chomp
+  if input.downcase != 'r' && input.downcase != 'p' && input.downcase != 's'
     say("Invalid choice. Choose one: [R/P/S]")
-    valid_user_turn(gets.chomp)
+    user_turn
   end
-  case rps.downcase
+  case input.downcase
   when 'r'
-    say("You chose Rock.")
     return 'Rock'
   when 'p'
-    say("You chose Paper.")
     return 'Paper'
   when 's'
-    say("You chose Scissors.")
     return 'Scissors'
   end
 end
 
 def computer_turn
-  random_choice = CHOICES.sample
-  say("The computer chose #{random_choice}.")
-  random_choice
+  CHOICES.sample
 end
 
-def winning_message(winning_choice)
+def print_winning_message(winning_choice)
   case
   when 'Rock'
-    say('Rock smashes scissors!', 'Results!')
+    say('Rock smashes scissors!')
   when 'Paper'
-    say('Paper covers rock!', 'Results!')
+    say('Paper covers rock!')
   when 'Scissors'
-    say('Scissors cuts paper!', 'Results!')
+    say('Scissors cuts paper!')
   end
 end
 
-def calculate_results(user_choice, computer_choice)
+def print_results(user_choice, computer_choice)
   if user_choice == computer_choice
-    say("It's a tie!", 'Results!')
+    say("It's a tie!")
   elsif (user_choice == 'Rock' && computer_choice == 'Scissors') || (user_choice == 'Paper' && computer_choice == 'Rock') || (user_choice == 'Scissors' && computer_choice == 'Paper')
-    winning_message(user_choice)
+    print_winning_message(user_choice)
     say('You win!')
   else
-    winning_message(computer_choice)
+    print_winning_message(computer_choice)
     say('You lose!')
   end
 end
 
-def play_again?
-  say('[Y/N]', 'Play again?')
-  y_n = gets.chomp
-  if y_n.downcase != 'y' && y_n.downcase != 'n'
+def response
+  input = String.new
+  input << gets.chomp
+  if input.downcase != 'y' && input.downcase != 'n'
     say('Invalid choice.')
-    play_again?
+    input.clear
+    response
   end
-  y_n.downcase == 'y' ? (return true) : (return false)
+  input.downcase == 'y' ? (return 'y') : (return 'n')
 end
 
 loop do
 say('Choose one: [R/P/S]', "Let's Play Rock Paper Scissors!")
-user_choice = valid_user_turn(gets.chomp)
+player_choice = user_turn
 computer_choice = computer_turn
-game_result = calculate_results(user_choice, computer_choice)
-break unless play_again? == true
+say("You chose #{player_choice}.", 'Results!')
+say("The computer chose #{computer_choice}.")
+print_results(player_choice, computer_choice)
+say('[Y/N]', 'Play again?')
+break unless response.downcase == 'y'
 end
 say('Thanks for playing!')
