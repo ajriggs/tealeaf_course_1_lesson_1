@@ -23,7 +23,11 @@ loop do
   when '3'
     say("#{num1} x #{num2} = #{num1.to_f * num2.to_f}", 'calculating...')
   when '4'
-    say("#{num1} ÷ #{num2} = #{num1.to_f / num2.to_f}", 'calculating...')
+    if num2 == 0
+      say("ERROR: You can't divide by zero!")
+    else
+      say("#{num1} ÷ #{num2} = #{num1.to_f / num2.to_f}", 'calculating...')
+    end
   else
     say("Oops! Something went wrong. Try again :)")
   end

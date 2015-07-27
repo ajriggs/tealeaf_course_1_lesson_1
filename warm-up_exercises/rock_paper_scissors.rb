@@ -84,6 +84,7 @@ def again_response
 end
 
 loop do
+system 'clear'
 say('Choose one: [R/P/S]', "Let's Play Rock Paper Scissors!")
 player_choice = user_turn
 computer_choice = computer_turn
