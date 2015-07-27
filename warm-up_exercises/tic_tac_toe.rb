@@ -8,7 +8,7 @@
 #  or if there's no winner
 #    say it's a tie
 
-# stretch goals: roll a die to see who goes first, or inherit
+# Future stretch goals: roll a die to see who goes first, or inherit
 # from rock paper scissors, and play that game to determine who goes first!
 
 def say(msg, title = nil)
@@ -103,7 +103,7 @@ def computer_chooses_square(board, opponent_marker, player_marker)
     if board[5] == ' '
       board[5] = player_marker
     else
-      board[empty_squares(board).sample] =player_marker
+      board[empty_squares(board).sample] = player_marker
     end
   end
 end
