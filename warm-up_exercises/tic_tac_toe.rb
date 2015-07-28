@@ -11,8 +11,6 @@
 # Future stretch goals: roll a die to see who goes first, or inherit
 # from rock paper scissors, and play that game to determine who goes first!
 
-require 'pry'
-
 def say(msg, title = nil)
   if title
     puts title.center(62, '~')
