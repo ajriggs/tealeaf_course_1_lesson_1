@@ -11,8 +11,10 @@
 # Future stretch goals: roll a die to see who goes first, or inherit
 # from rock paper scissors, and play that game to determine who goes first!
 
+require 'pry'
+
 def say(msg, title = nil)
-  unless title == nil
+  if title
     puts title.center(62, '~')
   end
   puts  "=> #{msg}".ljust(62)
@@ -24,37 +26,39 @@ def initialize_board
   board
 end
 
-def draw_board(b)
+def draw_board(board)
   system 'clear'
   puts "     |     |     "
-  puts "  #{b[1]}  |  #{b[2]}  |  #{b[3]}  "
+  puts "  #{board[1]}  |  #{board[2]}  |  #{board[3]}  "
   puts "_____|_____|_____"
   puts "     |     |     "
-  puts "  #{b[4]}  |  #{b[5]}  |  #{b[6]}  "
+  puts "  #{board[4]}  |  #{board[5]}  |  #{board[6]}  "
   puts "_____|_____|_____"
   puts "     |     |     "
-  puts "  #{b[7]}  |  #{b[8]}  |  #{b[9]}  "
+  puts "  #{board[7]}  |  #{board[8]}  |  #{board[9]}  "
   puts "     |     |     "
 end
 
 def empty_squares(board)
-  empty_positions = board.select {|k, v| v == ' ' }.keys
+  board.select {|_position, value| value == ' ' }.keys
 end
 
 def winning_lines
-  winning_lines = [[1, 4, 7], [2, 5, 8], [3, 6, 9], [1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 5, 9], [3, 5, 7]]
+  [[1, 4, 7], [2, 5, 8], [3, 6, 9], [1, 2, 3],
+  [4, 5, 6], [7, 8, 9], [1, 5, 9], [3, 5, 7]]
 end
 
 def current_lines_contents(board, winning_lines)
   current_lines = []
-  winning_lines.each { |line| current_lines << {line[0] => board[line[0]], line[1] => board[line[1]], line[2] => board[line[2]]} }
+  winning_lines.each do |line|
+    current_lines << {line[0] => board[line[0]], line[1] => board[line[1]], line[2] => board[line[2]]}
+  end
   current_lines
 end
 
 def square_to_win(line, player_marker)
   if (line.values.count(player_marker) == 2)
-    square_to_block = line.select{|k,v| v == ' '}.keys.first
-    return square_to_block
+    line.select{|_position, value| value == ' '}.keys.first
   else
     false
   end
@@ -62,8 +66,7 @@ end
 
 def square_to_block(line, opponent_marker)
   if (line.values.count(opponent_marker) == 2)
-    square_to_block = line.select{|k,v| v == ' '}.keys.first
-    return square_to_block
+    line.select{|_position, value| value == ' '}.keys.first
   else
     false
   end
@@ -73,12 +76,16 @@ def player_chooses_square(board)
   loop do
     chosen_square = gets.chomp
     if chosen_square == 'help'
-      say('Board is numbered 1-9, with 1 on the top-left, and 9 at the bottom-right. Type "help" to repeat this.')
+      say('Board is numbered 1-9, with 1 on the top-left, '\
+      'and 9 at the bottom-right. Type "help" to repeat this.')
     elsif empty_squares(board).include?(chosen_square.to_i)
       board[chosen_square.to_i] = 'X'
       break
     else
-      say("You can't do that. Please choose from one of the following locations: #{empty_squares(board)}.")
+      system 'clear'
+      draw_board(board)
+      say("You can't do that. Please choose from one of the following locations: "\
+      "#{empty_squares(board)}.", 'Invalid Option')
     end
   end
 end
@@ -87,14 +94,14 @@ def computer_chooses_square(board, opponent_marker, player_marker)
   lines = current_lines_contents(board, winning_lines)
   chose = false
   lines.each do |position, value|
-    block_position = square_to_block(position, opponent_marker)
     win_position = square_to_win(position, player_marker)
-    if block_position
-      board[block_position] = player_marker
+    block_position = square_to_block(position, opponent_marker)
+    if win_position
+      board[win_position] = player_marker
       chose = true
       break
-    elsif win_position
-      board[win_position] = player_marker
+    elsif block_position
+      board[block_position] = player_marker
       chose = true
       break
     end
@@ -120,20 +127,21 @@ def check_winner(board, winning_lines)
 end
 
 def game_over?(winner, board)
-  if winner != 'false' || empty_squares(board).empty?
-    return true
+  if winner || empty_squares(board).empty?
+    true
   else
-    winner.clear
-    return false
+    false
   end
 end
 
-def play_again?
+def play_again?(board)
   say("Choose [Y/N]", 'Continue Playing?')
   loop do
     input = gets.chomp
     unless input.downcase == 'y' || input.downcase == 'n'
-      say("Invalid option. Play again? [Y/N]")
+      system 'clear'
+      draw_board(board)
+      say("Play again? [Y/N]", 'Invalid Option')
     end
     case input.downcase
     when 'y'
@@ -159,16 +167,18 @@ begin
   game_board = initialize_board
   draw_board(game_board)
   winner = ''
+  say('Board is numbered 1-9, with 1 on the top-left, '\
+  'and 9 at the bottom-right.', "Let's Play Tic-Tac-Toe!")
   loop do
     player_chooses_square(game_board)
     draw_board(game_board)
-    winner << check_winner(game_board, winning_lines).to_s
+    winner = check_winner(game_board, winning_lines)
     break if game_over?(winner, game_board)
     computer_chooses_square(game_board, 'X', 'O')
     draw_board(game_board)
-    winner << check_winner(game_board, winning_lines).to_s
+    winner = check_winner(game_board, winning_lines)
     break if game_over?(winner, game_board)
     say("Remaining spots: #{empty_squares(game_board)}", 'Pick again')
   end
   announce_winner(winner)
-end until play_again? == false
+end while play_again?(game_board)
