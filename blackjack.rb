@@ -24,10 +24,12 @@
 # game ends when player runs out of money
 # play again?
 
-# stretch goals: Add in betting/money pool, w/ running out
-# of money as a gameOver condition. Add in multiplayer.
+# Had some fun with this. In particular, I added in a shuffle_deck() method
+# that attempts to model the way a dealer shuffles cards at a table, with
+# a little randomness baked in. Hope everything isn't TOO abstracted!
 
-require 'pry'
+# stretch goals: Add in betting & money pool, with running out
+# of money as a gameOver condition. Add in multiplayer?
 
 def say(msg, title = nil)
   if title
@@ -62,17 +64,19 @@ def explain_rules
     say(nil, 'Rules')
     say("I'll deal us each two cards. Your cards are visible to all, \n" +
         "but you can only see the first card that I deal to myself. \n" +
-        "Try to make the value of your cards total 21, but no higher. \n \n" +
-        "Aces are worth 11, unless 11 would make you bust. Then, \n" +
-        "Aces are automatically worth 1 instead. Face cards are \n" +
-        "each worth 10, and numbered cards are worth their number. \n \n" +
+        "Try to make the value of your cards total 21...but no higher, \n" +
+        "or else you'll bust! \n \n" +
+        "CARD VALUES: \n" +
+        "-Numbers 2-10 are valued at their number. \n" +
+        "-Face cards (K, Q, J) are worth 10 each. \n" +
+        "-Aces are worth 1 or 11, whichever benefits you more. \n" +
+        "*NOTE: the value of an Ace can change at any time. \n\n" +
         "After dealing, I'll ask you: HIT or STAY? If you HIT, \n" +
         "you'll get another card. If you haven't busted (22+), \n" +
         "or gotten blackjack (21), you can HIT again, or STAY. \n" +
         "Choose 'STAY' at any point to end your turn. \n \n" +
-        "I'll reveal my cards at the end, and unless you bust, \n" +
-        "if your cards total higher than mine, you win! If we \n" +
-        "both bust, the person with the highest total wins. \n \n" +
+        "I'll reveal my cards at the end. Unless you bust and I \n" +
+        "don't, if your cards total higher than mine, you win!  \n \n" +
         "Hit ENTER/RETURN to continue.")
 
   else
@@ -132,6 +136,23 @@ def announce_dealer_results(hand)
   end
 end
 
+def announce_final_results(player_hand, dealer_hand, player_name)
+  player_total = calculate_hand_total(player_hand)
+  player_bust = bust?(player_hand)
+  player_bust_total = calculate_bust_total(player_hand)
+  dealer_total = calculate_hand_total(dealer_hand)
+  dealer_bust = bust?(dealer_hand)
+  dealer_bust_total = calculate_bust_total(dealer_hand)
+  say(nil, 'Final Results')
+  if (player_total <= 21 && player_total == dealer_total) || ((player_bust && dealer_bust) && player_bust_total == dealer_bust_total)
+    say("It's a tie!")
+  elsif (!player_bust && dealer_bust) || ((!player_bust && !dealer_bust) && (player_total > dealer_total)) || ((player_bust && dealer_bust) && (player_bust_total > dealer_bust_total))
+    say("You Won, #{player_name}!")
+  else
+    say("You Lost, #{player_name}. Better luck next time!")
+  end
+end
+
 def play_again?
   yes_or_no?('Do you want to play again? [Y/N]')
 end
@@ -152,18 +173,7 @@ def initialize_deck
       end
     end
   end
-  randomize_order(deck)
-  deck
-end
-
-def randomize_order(deck)
-  shuffled = []
-  while deck.count > 0
-    random_card_index = rand(deck.count - 1)
-    shuffled << deck[random_card_index]
-    deck.delete_at(random_card_index)
-  end
-  shuffled.each { |card| deck << card }
+  deck.shuffle!
 end
 
 def shuffle_deck(deck)
@@ -183,19 +193,19 @@ def deal_starting_hands(deck)
   [player_hand, dealer_hand]
 end
 
+def discard_hands(player_hand, dealer_hand, discard_pile)
+  discard_pile << player_hand
+  discard_pile << dealer_hand
+  discard_pile.flatten!
+end
+
 def hand_contains_ace?(hand)
-  hand.each do |card|
-    return true if card[:rank] == 'Ace'
-  end
   false
+  true if hand.select{|card| card[:rank] == 'Ace'}.count > 0
 end
 
 def number_of_aces(hand)
-  aces = 0
-  hand.each do |card|
-    aces += 1 if card[:rank] == 'Ace'
-  end
-  aces
+  hand.select{|card| card[:rank] == 'Ace'}.count
 end
 
 def calculate_hand_total(hand)
@@ -206,8 +216,8 @@ def calculate_hand_total(hand)
     total += card[:value]
   end
   if aces > 0
-    total += aces if (total + 11 + (aces - 1) > 21) || (total + aces) >= 21
-    total += (11 + (aces - 1)) if (total + 11 + (aces - 1) <= 21)
+    total += aces if (total + 10 + aces > 21) || (total + aces >= 21)
+    total += 10 + aces if (total + 10 + aces <= 21)
   end
   total
 end
@@ -244,25 +254,9 @@ def bust?(hand)
   true if calculate_hand_total(hand) > 21
 end
 
-def announce_final_results(player_hand, dealer_hand, player_name)
-  player_total = calculate_hand_total(player_hand)
-  player_bust = bust?(player_hand)
-  player_bust_total = calculate_bust_total(player_hand)
-  dealer_total = calculate_hand_total(dealer_hand)
-  dealer_bust = bust?(dealer_hand)
-  dealer_bust_total = calculate_bust_total(dealer_hand)
-  say(nil, 'Final Results')
-  if (player_total <= 21 && player_total == dealer_total) || ((player_bust && dealer_bust) && player_bust_total == dealer_bust_total)
-    say("It's a tie!")
-  elsif (!player_bust && dealer_bust) || ((!player_bust && !dealer_bust) && (player_total > dealer_total)) || ((player_bust && dealer_bust) && (player_bust_total > dealer_bust_total))
-    say("You Won, #{player_name}!")
-  else
-    say("You Lost, #{player_name}. Better luck next time!")
-  end
-end
-
 system 'clear'
 deck = initialize_deck
+discard_pile = []
 name = get_player_name
 say("Hi, #{name}!")
 begin
@@ -289,5 +283,10 @@ loop do
   announce_dealer_results(dealer_hand)
   announce_final_results(player_hand, dealer_hand, name)
   break unless play_again?
+  discard_hands(player_hand, dealer_hand, discard_pile)
+  if deck.count < 26
+    deck += discard_pile
+    shuffle_deck(deck)
+  end
 end
 say("Thanks for playing, #{name}!")
