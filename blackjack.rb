@@ -26,10 +26,13 @@
 
 # Had some fun with this. In particular, I added in a shuffle_deck() method
 # that attempts to model the way a dealer shuffles cards at a table, with
-# a little randomness baked in. Hope everything isn't TOO abstracted!
+# a little randomness baked in. Also added in advanced win/tie conditions,
+# for things like when both players bust, for ex.
+# Hope everything isn't TOO abstracted!
 
 # stretch goals: Add in betting & money pool, with running out
-# of money as a gameOver condition. Add in multiplayer?
+# of money as a gameOver condition. Add 1+ additional decks.
+# Maybe add in multiplayer?
 
 def say(msg, title = nil)
   if title
@@ -55,7 +58,6 @@ end
 def get_player_name
   say("What's your name?", "Let's Play Blackjack!")
   name = gets.chomp.capitalize
-  return name
 end
 
 def explain_rules
@@ -78,7 +80,6 @@ def explain_rules
         "I'll reveal my cards at the end. Unless you bust and I \n" +
         "don't, if your cards total higher than mine, you win!  \n \n" +
         "Hit ENTER/RETURN to continue.")
-
   else
     say("Ok. Then let's get started! Hit ENTER/RETURN to continue.")
   end
