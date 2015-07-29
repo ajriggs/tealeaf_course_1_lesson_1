@@ -31,10 +31,10 @@ require 'pry'
 
 def say(msg, title = nil)
   if title
-    puts title.center(62, '~')
+    puts title.center(70, '~')
   end
   if msg
-    puts  "=> #{msg}".ljust(62)
+    puts  "=> #{msg}".ljust(70)
   end
 end
 
@@ -70,9 +70,9 @@ def explain_rules
         "you'll get another card. If you haven't busted (22+), \n" +
         "or gotten blackjack (21), you can HIT again, or STAY. \n" +
         "Choose 'STAY' at any point to end your turn. \n \n" +
-        "I'll reveal my cards at the end, and if your cards total \n" +
-        "higher than mine, you win! If you're stuck, you can type \n" +
-        "HELP at any time to find out what you're supposed to do. \n \n" +
+        "I'll reveal my cards at the end, and unless you bust, \n" +
+        "if your cards total higher than mine, you win! If we \n" +
+        "both bust, the person with the highest total wins. \n \n" +
         "Hit ENTER/RETURN to continue.")
 
   else
@@ -80,18 +80,60 @@ def explain_rules
   end
 end
 
-def announce_hands(player_hand, dealer_hand)
-  # system 'clear'
-  say(nil, 'Starting Hands')
-  player_hand.each do |card|
-    if card == player_hand.first
-      say("Your hand: #{card[:rank]} of #{card[:suit]}")
-    else
-      say("           #{card[:rank]} of #{card[:suit]}")
+def announce_player_hand(hand, name)
+  system 'clear'
+  say(nil, "#{name}'s Hand")
+  hand.each do |card|
+    say("           #{card[:rank]} of #{card[:suit]}")
+  end
+  unless bust?(hand)
+    say("           Total: #{calculate_hand_total(hand)}")
+  else
+    say("           Total: #{calculate_bust_total(hand)}")
+  end
+end
+
+def announce_dealer_hand(hand, final_turn = false)
+  say(nil, 'My Hand')
+  if hand.count == 2 && !final_turn
+    say("My first card is the #{hand[0][:rank]} of #{hand[0][:suit]}. "\
+        "I have one other, hidden card.")
+  else
+    hand.each do |card|
+      if card == hand.first
+        say("My hand: #{card[:rank]} of #{card[:suit]}")
+      else
+        next if (hand.index(card) == 1) && !final_turn
+        say("         #{card[:rank]} of #{card[:suit]}")
+        say("         plus one hidden card!") unless final_turn
+      end
     end
   end
-  say("           Total: #{calculate_hand_total(player_hand)} \n" +
-  "My first card is the #{dealer_hand[0][:rank]} of #{dealer_hand[0][:suit]}.")
+end
+
+def announce_player_results(hand, name)
+  if blackjack?(hand)
+    say("#{name} got a blackjack!")
+  elsif bust?(hand)
+    say("You busted, #{name}! Your total is: "\
+        "#{calculate_bust_total(hand)}")
+  else
+    say("#{name}, Your final total is: #{calculate_hand_total(hand)}")
+  end
+end
+
+def announce_dealer_results(hand)
+  if blackjack?(hand)
+    say('I got Blackjack!')
+  elsif bust?(hand)
+    say("I busted! My total is: #{calculate_bust_total(hand)}")
+  else
+    say("My final total is: #{calculate_hand_total(hand)}")
+  end
+end
+
+def play_again?
+  yes_or_no?('Do you want to play again? [Y/N]')
 end
 
 def initialize_deck
@@ -170,6 +212,12 @@ def calculate_hand_total(hand)
   total
 end
 
+def calculate_bust_total(hand)
+  total = calculate_hand_total(hand)
+  aces = number_of_aces(hand)
+  total += 10 * aces
+end
+
 def stay?
   say('HIT or STAY?', 'Your Turn')
   loop do
@@ -186,6 +234,33 @@ def hit(deck, hand)
   hand << deck.shift
 end
 
+def blackjack?(hand)
+  false
+  true if calculate_hand_total(hand) == 21
+end
+
+def bust?(hand)
+  false
+  true if calculate_hand_total(hand) > 21
+end
+
+def announce_final_results(player_hand, dealer_hand, player_name)
+  player_total = calculate_hand_total(player_hand)
+  player_bust = bust?(player_hand)
+  player_bust_total = calculate_bust_total(player_hand)
+  dealer_total = calculate_hand_total(dealer_hand)
+  dealer_bust = bust?(dealer_hand)
+  dealer_bust_total = calculate_bust_total(dealer_hand)
+  say(nil, 'Final Results')
+  if (player_total <= 21 && player_total == dealer_total) || ((player_bust && dealer_bust) && player_bust_total == dealer_bust_total)
+    say("It's a tie!")
+  elsif (!player_bust && dealer_bust) || ((!player_bust && !dealer_bust) && (player_total > dealer_total)) || ((player_bust && dealer_bust) && (player_bust_total > dealer_bust_total))
+    say("You Won, #{player_name}!")
+  else
+    say("You Lost, #{player_name}. Better luck next time!")
+  end
+end
+
 system 'clear'
 deck = initialize_deck
 name = get_player_name
@@ -193,12 +268,26 @@ say("Hi, #{name}!")
 begin
   explain_rules
 end until gets.chomp
-starting_hands = deal_starting_hands(deck)
-player_hand = starting_hands[0]
-dealer_hand = starting_hands[1]
-announce_hands(player_hand, dealer_hand)
-# binding.pry
-until stay?
-  hit(deck, player_hand)
-  announce_hands(player_hand, dealer_hand)
+loop do
+  starting_hands = deal_starting_hands(deck)
+  announce_player_hand(player_hand = starting_hands[0], name)
+  announce_dealer_hand(dealer_hand = starting_hands[1])
+  unless blackjack?(player_hand)
+    until stay?
+      hit(deck, player_hand)
+      announce_player_hand(player_hand, name)
+      announce_dealer_hand(dealer_hand)
+      break if  blackjack?(player_hand) || bust?(player_hand)
+    end
+  end
+  announce_player_hand(player_hand, name)
+  announce_player_results(player_hand, name)
+  until calculate_hand_total(dealer_hand) >= 17
+    hit(deck, dealer_hand)
+  end
+  announce_dealer_hand(dealer_hand, true)
+  announce_dealer_results(dealer_hand)
+  announce_final_results(player_hand, dealer_hand, name)
+  break unless play_again?
 end
+say("Thanks for playing, #{name}!")
